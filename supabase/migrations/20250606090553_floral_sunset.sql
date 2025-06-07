@@ -1,0 +1,161 @@
+/*
+  # Seed Recipe Data
+
+  1. Insert sample recipes into the recipes table
+  2. These recipes provide a good variety of cuisines, meal types, and dietary restrictions
+*/
+
+INSERT INTO recipes (
+  title,
+  image_url,
+  ingredients,
+  instructions,
+  cook_time,
+  prep_time,
+  servings,
+  calories,
+  cuisine,
+  dietary_restrictions,
+  difficulty,
+  meal_type
+) VALUES
+(
+  'Classic Margherita Pizza',
+  'https://images.pexels.com/photos/1146760/pexels-photo-1146760.jpeg',
+  ARRAY['1 pizza dough', '1/2 cup pizza sauce', '8 oz fresh mozzarella', '1/4 cup fresh basil leaves', '2 tbsp olive oil', 'Salt and pepper', '1 tsp dried oregano'],
+  'Preheat oven to 475°F. Roll out pizza dough on a floured surface. Transfer dough to a pizza stone or baking sheet. Spread pizza sauce evenly over dough, leaving a 1-inch border. Add sliced mozzarella and drizzle with olive oil. Bake for 12-15 minutes until crust is golden and cheese is bubbly. Remove from oven and top with fresh basil leaves. Season with salt, pepper, and oregano.',
+  15,
+  10,
+  4,
+  285,
+  'Italian',
+  ARRAY['Vegetarian'],
+  'Medium',
+  'Dinner'
+),
+(
+  'Chicken Teriyaki Bowl',
+  'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg',
+  ARRAY['2 chicken breasts, sliced', '2 cups cooked rice', '1/4 cup teriyaki sauce', '1 cup broccoli florets', '1 carrot, julienned', '2 tbsp sesame oil', '1 tbsp sesame seeds', '2 green onions, chopped'],
+  'Heat sesame oil in a large pan over medium-high heat. Add chicken and cook until golden brown. Add vegetables and stir-fry for 3-4 minutes. Pour teriyaki sauce over chicken and vegetables. Serve over rice and garnish with sesame seeds and green onions.',
+  20,
+  15,
+  4,
+  420,
+  'Asian',
+  ARRAY['Gluten-Free'],
+  'Easy',
+  'Dinner'
+),
+(
+  'Mediterranean Quinoa Salad',
+  'https://images.pexels.com/photos/1059905/pexels-photo-1059905.jpeg',
+  ARRAY['1 cup quinoa, cooked', '1 cucumber, diced', '1 cup cherry tomatoes, halved', '1/2 red onion, diced', '1/2 cup kalamata olives', '1/2 cup feta cheese, crumbled', '1/4 cup olive oil', '2 tbsp lemon juice', '2 tbsp fresh herbs (parsley, mint)'],
+  'Cook quinoa according to package directions and let cool. In a large bowl, combine quinoa, cucumber, tomatoes, red onion, and olives. Whisk together olive oil, lemon juice, salt, and pepper. Pour dressing over salad and toss. Top with feta cheese and fresh herbs.',
+  0,
+  20,
+  6,
+  320,
+  'Mediterranean',
+  ARRAY['Vegetarian', 'Gluten-Free'],
+  'Easy',
+  'Lunch'
+),
+(
+  'Beef Tacos with Avocado Salsa',
+  'https://images.pexels.com/photos/2092507/pexels-photo-2092507.jpeg',
+  ARRAY['1 lb ground beef', '8 corn tortillas', '1 packet taco seasoning', '2 avocados, diced', '1 tomato, diced', '1/4 red onion, minced', '2 tbsp lime juice', '1/4 cup cilantro, chopped', '1 cup shredded lettuce', '1/2 cup Mexican cheese blend'],
+  'Brown ground beef in a large skillet. Add taco seasoning and water according to package directions. Simmer until thickened. For salsa, combine avocados, tomato, onion, lime juice, and cilantro. Warm tortillas and fill with beef, lettuce, cheese, and avocado salsa.',
+  15,
+  15,
+  4,
+  485,
+  'Mexican',
+  ARRAY['Gluten-Free'],
+  'Easy',
+  'Dinner'
+),
+(
+  'Salmon with Lemon Herb Butter',
+  'https://images.pexels.com/photos/1516415/pexels-photo-1516415.jpeg',
+  ARRAY['4 salmon fillets', '4 tbsp butter, softened', '2 tbsp fresh dill, chopped', '2 tbsp fresh parsley, chopped', '2 cloves garlic, minced', '1 lemon, zested and juiced', 'Salt and pepper to taste', '2 tbsp olive oil'],
+  'Preheat oven to 400°F. Mix butter, herbs, garlic, lemon zest, salt, and pepper. Heat olive oil in an oven-safe skillet over medium-high heat. Season salmon with salt and pepper, then sear for 3 minutes. Flip salmon and top with herb butter. Transfer to oven and bake for 8-10 minutes. Drizzle with lemon juice before serving.',
+  15,
+  10,
+  4,
+  380,
+  'American',
+  ARRAY['Gluten-Free', 'Low-Carb'],
+  'Medium',
+  'Dinner'
+),
+(
+  'Vegetarian Buddha Bowl',
+  'https://images.pexels.com/photos/1640770/pexels-photo-1640770.jpeg',
+  ARRAY['1 cup brown rice, cooked', '1 cup roasted sweet potato, cubed', '1 cup steamed broccoli', '1/2 cup edamame', '1/4 cup red cabbage, shredded', '2 tbsp tahini', '1 tbsp lemon juice', '1 tbsp maple syrup', '1 tsp sesame oil', '1 tbsp pumpkin seeds'],
+  'Roast sweet potato cubes at 425°F for 25 minutes. Steam broccoli until tender. Cook edamame according to package directions. Whisk together tahini, lemon juice, maple syrup, and sesame oil for dressing. Arrange all ingredients in a bowl over rice and drizzle with dressing. Top with pumpkin seeds.',
+  30,
+  15,
+  2,
+  450,
+  'Asian',
+  ARRAY['Vegan', 'Gluten-Free'],
+  'Easy',
+  'Lunch'
+),
+(
+  'Chocolate Chip Banana Pancakes',
+  'https://images.pexels.com/photos/376464/pexels-photo-376464.jpeg',
+  ARRAY['2 cups all-purpose flour', '2 tbsp sugar', '2 tsp baking powder', '1/2 tsp salt', '2 eggs', '1 3/4 cups milk', '1/4 cup melted butter', '2 ripe bananas, mashed', '1/2 cup chocolate chips', 'Maple syrup for serving'],
+  'Mix dry ingredients in a large bowl. In another bowl, whisk eggs, milk, melted butter, and mashed bananas. Pour wet ingredients into dry ingredients and stir until just combined. Fold in chocolate chips. Heat griddle over medium heat. Pour 1/4 cup batter for each pancake. Cook until bubbles form, then flip and cook until golden. Serve with maple syrup.',
+  15,
+  10,
+  4,
+  385,
+  'American',
+  ARRAY['Vegetarian'],
+  'Easy',
+  'Breakfast'
+),
+(
+  'Thai Green Curry',
+  'https://images.pexels.com/photos/2347311/pexels-photo-2347311.jpeg',
+  ARRAY['1 lb chicken thigh, cubed', '1 can coconut milk', '2 tbsp green curry paste', '1 eggplant, cubed', '1 bell pepper, sliced', '1/4 cup Thai basil', '2 tbsp fish sauce', '1 tbsp brown sugar', '2 kaffir lime leaves', 'Jasmine rice for serving'],
+  'Heat 1/4 cup coconut milk in a large pan over medium heat. Add curry paste and cook for 2 minutes. Add chicken and cook until no longer pink. Add remaining coconut milk, eggplant, bell pepper, fish sauce, and brown sugar. Simmer for 15 minutes. Add lime leaves and basil. Serve over jasmine rice.',
+  25,
+  15,
+  4,
+  420,
+  'Thai',
+  ARRAY['Gluten-Free', 'Dairy-Free'],
+  'Medium',
+  'Dinner'
+),
+(
+  'Greek Yogurt Parfait',
+  'https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg',
+  ARRAY['2 cups Greek yogurt', '1/4 cup honey', '1 cup mixed berries', '1/2 cup granola', '2 tbsp chia seeds', '1/4 cup chopped almonds', '1 tsp vanilla extract', 'Fresh mint for garnish'],
+  'Mix Greek yogurt with honey and vanilla extract. In glasses or bowls, layer yogurt mixture, berries, and granola. Repeat layers. Top with chia seeds, chopped almonds, and fresh mint. Serve immediately or refrigerate for up to 2 hours.',
+  0,
+  10,
+  4,
+  285,
+  'Greek',
+  ARRAY['Vegetarian', 'Gluten-Free'],
+  'Easy',
+  'Breakfast'
+),
+(
+  'Mushroom Risotto',
+  'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg',
+  ARRAY['1 1/2 cups Arborio rice', '4 cups warm vegetable broth', '1 lb mixed mushrooms, sliced', '1 onion, diced', '3 cloves garlic, minced', '1/2 cup white wine', '1/2 cup Parmesan cheese, grated', '3 tbsp butter', '2 tbsp olive oil', 'Fresh thyme and parsley'],
+  'Heat olive oil in a large pan and sauté mushrooms until golden. Remove and set aside. In the same pan, sauté onion until translucent. Add garlic and rice, stirring for 2 minutes. Add wine and stir until absorbed. Add warm broth one ladle at a time, stirring constantly until absorbed. Continue for 18-20 minutes. Stir in mushrooms, butter, and Parmesan. Garnish with herbs.',
+  30,
+  15,
+  4,
+  420,
+  'Italian',
+  ARRAY['Vegetarian', 'Gluten-Free'],
+  'Hard',
+  'Dinner'
+);
