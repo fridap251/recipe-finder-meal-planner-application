@@ -36,8 +36,8 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Use your provided secret and the deployed site URL
-    const clientSecret = 'gloas-e1e836a563e13461acd994fd06913ca4845f0239d0a145c99b8065a97deec523';
+    // Use your updated secret and the deployed site URL
+    const clientSecret = 'gloas-c56147f3adeba0d6c2a400f17f14c810352ceaa09b67103bd8c51b854dc5d704';
     const clientId = '1d28de9d8a7bcbfb1c41cbc05b6133ac1a08f5891a7f4116a4df4f207a128312';
     const redirectUri = 'https://stellar-puffpuff-768d8a.netlify.app/auth/callback';
 
