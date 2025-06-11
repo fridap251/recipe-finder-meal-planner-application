@@ -9,7 +9,7 @@ const AuthButton: React.FC = () => {
     return (
       <div className="flex items-center space-x-2">
         <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-        <span className="text-sm text-gray-600">Loading...</span>
+        <span className="text-sm text-gray-600 hidden sm:inline">Loading...</span>
       </div>
     );
   }
@@ -22,7 +22,7 @@ const AuthButton: React.FC = () => {
             <img
               src={user.avatar_url}
               alt={user.name}
-              className="w-8 h-8 rounded-full border-2 border-primary-200"
+              className="w-8 h-8 rounded-full border-2 border-primary-200 shadow-sm"
             />
           ) : (
             <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
@@ -36,7 +36,7 @@ const AuthButton: React.FC = () => {
         </div>
         <button
           onClick={logout}
-          className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-600 hover:text-error-600 transition-colors"
+          className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-600 hover:text-error-600 transition-colors rounded-md hover:bg-gray-50"
           title="Sign out"
         >
           <LogOut className="w-4 h-4" />
@@ -49,7 +49,7 @@ const AuthButton: React.FC = () => {
   return (
     <button
       onClick={login}
-      className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+      className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
     >
       <LogIn className="w-4 h-4" />
       <span>Sign in with GitLab</span>

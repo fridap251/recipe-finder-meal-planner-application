@@ -53,6 +53,7 @@ exports.handler = async (event, context) => {
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
+      console.error('GitLab token exchange failed:', errorData);
       return {
         statusCode: 400,
         headers,
@@ -75,6 +76,7 @@ exports.handler = async (event, context) => {
       }),
     };
   } catch (error) {
+    console.error('OAuth function error:', error);
     return {
       statusCode: 500,
       headers,

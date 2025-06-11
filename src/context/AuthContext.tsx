@@ -52,10 +52,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
       const state = urlParams.get('state');
+      const error = urlParams.get('error');
+
+      if (error) {
+        setError(`OAuth Error: ${error}`);
+        setIsLoading(false);
+        return;
+      }
 
       if (code) {
         setIsLoading(true);
         try {
+          // Validate state parameter
+          const storedState = localStorage.getItem('oauth_state');
+          if (state !== storedState) {
+            throw new Error('Invalid state parameter. Possible CSRF attack.');
+          }
+
           const response = await fetch('/.netlify/functions/gitlab-oauth', {
             method: 'POST',
             headers: {
@@ -65,7 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
 
           if (!response.ok) {
-            throw new Error('Failed to authenticate');
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to authenticate');
           }
 
           const tokenData = await response.json();
@@ -74,8 +88,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const userData = await fetchUserData(tokenData.access_token);
           setUser(userData);
 
-          // Clean up URL
+          // Clean up URL and state
           window.history.replaceState({}, document.title, window.location.pathname);
+          localStorage.removeItem('oauth_state');
         } catch (err) {
           setError(err instanceof Error ? err.message : 'Authentication failed');
         } finally {
@@ -101,14 +116,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return response.json();
   };
 
+  const generateRandomState = () => {
+    return Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+  };
+
   const login = () => {
     const clientId = '1d28de9d8a7bcbfb1c41cbc05b6133ac1a08f5891a7f4116a4df4f207a128312';
     const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
-    const state = Math.random().toString(36).substring(2, 15);
+    const state = generateRandomState();
+    const scopes = 'read_user';
     
     localStorage.setItem('oauth_state', state);
     
-    const authUrl = `https://gitlab.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&state=${state}&scope=read_user`;
+    const authUrl = `https://gitlab.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${state}`;
     
     window.location.href = authUrl;
   };
