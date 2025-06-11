@@ -36,6 +36,11 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // Use your provided secret
+    const clientSecret = 'gloas-e1e836a563e13461acd994fd06913ca4845f0239d0a145c99b8065a97deec523';
+    const clientId = '1d28de9d8a7bcbfb1c41cbc05b6133ac1a08f5891a7f4116a4df4f207a128312';
+    const redirectUri = process.env.URL ? `${process.env.URL}/auth/callback` : 'https://stellar-puffpuff-768d8a.netlify.app/auth/callback';
+
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://gitlab.com/oauth/token', {
       method: 'POST',
@@ -43,11 +48,11 @@ exports.handler = async (event, context) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        client_id: process.env.GITLAB_CLIENT_ID,
-        client_secret: process.env.GITLAB_CLIENT_SECRET,
+        client_id: clientId,
+        client_secret: clientSecret,
         code: code,
         grant_type: 'authorization_code',
-        redirect_uri: process.env.GITLAB_REDIRECT_URI,
+        redirect_uri: redirectUri,
       }),
     });
 
