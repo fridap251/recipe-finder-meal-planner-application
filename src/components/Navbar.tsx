@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Utensils, Calendar, Heart, Search } from 'lucide-react';
+import { Menu, X, Utensils, Calendar, Heart, Search, User } from 'lucide-react';
 import { cn } from '../lib/utils';
+import AuthButton from './AuthButton';
 
 const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -12,6 +13,7 @@ const Navbar: React.FC = () => {
     { name: 'Recipes', path: '/recipes', icon: <Search className="w-5 h-5" /> },
     { name: 'Meal Planner', path: '/meal-planner', icon: <Calendar className="w-5 h-5" /> },
     { name: 'Favorites', path: '/favorites', icon: <Heart className="w-5 h-5" /> },
+    { name: 'Profile', path: '/profile', icon: <User className="w-5 h-5" /> },
   ];
 
   const toggleMobileMenu = () => {
@@ -45,9 +47,13 @@ const Navbar: React.FC = () => {
                 {link.name}
               </Link>
             ))}
+            <div className="ml-4 pl-4 border-l border-gray-200">
+              <AuthButton />
+            </div>
           </div>
           
-          <div className="flex md:hidden items-center">
+          <div className="flex md:hidden items-center space-x-2">
+            <AuthButton />
             <button
               onClick={toggleMobileMenu}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out"
