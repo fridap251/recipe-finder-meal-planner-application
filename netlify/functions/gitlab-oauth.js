@@ -36,16 +36,20 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Use your updated secret and the deployed site URL
+    // OAuth application credentials
     const clientSecret = 'gloas-c56147f3adeba0d6c2a400f17f14c810352ceaa09b67103bd8c51b854dc5d704';
     const clientId = '1d28de9d8a7bcbfb1c41cbc05b6133ac1a08f5891a7f4116a4df4f207a128312';
     const redirectUri = 'https://stellar-puffpuff-768d8a.netlify.app/auth/callback';
+
+    console.log('Attempting token exchange with GitLab...');
 
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://gitlab.com/oauth/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': 'RecipeFinder-App/1.0',
       },
       body: JSON.stringify({
         client_id: clientId,
@@ -58,18 +62,25 @@ exports.handler = async (event, context) => {
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
-      console.error('GitLab token exchange failed:', errorData);
+      console.error('GitLab token exchange failed:', {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
+        error: errorData
+      });
+      
       return {
         statusCode: 400,
         headers,
         body: JSON.stringify({ 
           error: 'Failed to exchange code for token',
-          details: errorData 
+          details: errorData,
+          status: tokenResponse.status
         }),
       };
     }
 
     const tokenData = await tokenResponse.json();
+    console.log('Token exchange successful');
     
     return {
       statusCode: 200,

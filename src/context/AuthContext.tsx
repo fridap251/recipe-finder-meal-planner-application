@@ -53,9 +53,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const code = urlParams.get('code');
       const state = urlParams.get('state');
       const error = urlParams.get('error');
+      const errorDescription = urlParams.get('error_description');
 
       if (error) {
-        setError(`OAuth Error: ${error}`);
+        setError(`OAuth Error: ${error}${errorDescription ? ` - ${errorDescription}` : ''}`);
         setIsLoading(false);
         return;
       }
@@ -69,6 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             throw new Error('Invalid state parameter. Possible CSRF attack.');
           }
 
+          console.log('Exchanging code for token...');
           const response = await fetch('/.netlify/functions/gitlab-oauth', {
             method: 'POST',
             headers: {
@@ -79,6 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           if (!response.ok) {
             const errorData = await response.json();
+            console.error('Token exchange failed:', errorData);
             throw new Error(errorData.error || 'Failed to authenticate');
           }
 
@@ -91,7 +94,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Clean up URL and state
           window.history.replaceState({}, document.title, window.location.pathname);
           localStorage.removeItem('oauth_state');
+          setError(null);
         } catch (err) {
+          console.error('OAuth callback error:', err);
           setError(err instanceof Error ? err.message : 'Authentication failed');
         } finally {
           setIsLoading(false);
@@ -121,17 +126,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = () => {
-    const clientId = '1d28de9d8a7bcbfb1c41cbc05b6133ac1a08f5891a7f4116a4df4f207a128312';
-    // Use the deployed site URL for redirect
-    const redirectUri = encodeURIComponent('https://stellar-puffpuff-768d8a.netlify.app/auth/callback');
-    const state = generateRandomState();
-    const scopes = 'read_user';
-    
-    localStorage.setItem('oauth_state', state);
-    
-    const authUrl = `https://gitlab.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${state}`;
-    
-    window.location.href = authUrl;
+    try {
+      setError(null);
+      const clientId = '1d28de9d8a7bcbfb1c41cbc05b6133ac1a08f5891a7f4116a4df4f207a128312';
+      
+      // Determine the correct redirect URI based on environment
+      const isProduction = window.location.hostname !== 'localhost';
+      const redirectUri = isProduction 
+        ? 'https://stellar-puffpuff-768d8a.netlify.app/auth/callback'
+        : `${window.location.origin}/auth/callback`;
+      
+      const state = generateRandomState();
+      const scopes = 'read_user';
+      
+      localStorage.setItem('oauth_state', state);
+      
+      const authUrl = `https://gitlab.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${state}`;
+      
+      console.log('Redirecting to GitLab OAuth:', authUrl);
+      window.location.href = authUrl;
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Failed to initiate login');
+    }
   };
 
   const logout = () => {
