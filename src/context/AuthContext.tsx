@@ -122,7 +122,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = () => {
     const clientId = '1d28de9d8a7bcbfb1c41cbc05b6133ac1a08f5891a7f4116a4df4f207a128312';
-    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
+    // Use the deployed site URL for redirect
+    const redirectUri = encodeURIComponent('https://stellar-puffpuff-768d8a.netlify.app/auth/callback');
     const state = generateRandomState();
     const scopes = 'read_user';
     
