@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Recipe, SearchFilters, MealPlan } from '../types';
 import { mockRecipes } from '../data/mockRecipes';
+import apiClient from '../lib/api';
 
 interface RecipeContextType {
   recipes: Recipe[];
@@ -19,6 +20,8 @@ interface RecipeContextType {
   addRecipeToMealPlan: (recipe: Recipe, day: string, mealType: string) => void;
   removeRecipeFromMealPlan: (day: string, mealType: string) => void;
   loading: boolean;
+  fetchRecipes: () => Promise<void>;
+  getRecommendations: (query: string, image?: File) => Promise<Recipe[]>;
 }
 
 const RecipeContext = createContext<RecipeContextType | undefined>(undefined);
@@ -54,6 +57,56 @@ export const RecipeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.setItem('mealPlans', JSON.stringify(mealPlans));
   }, [mealPlans]);
 
+  // Fetch recipes from API
+  const fetchRecipes = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.getRecipes();
+      if (response.data?.recipes) {
+        // Transform API recipes to match our Recipe interface
+        const transformedRecipes = response.data.recipes.map((recipe: any) => ({
+          ...recipe,
+          nutritionalInfo: recipe.nutritionalInfo || {
+            protein: 15,
+            carbs: 30,
+            fat: 10,
+            fiber: 5
+          }
+        }));
+        setRecipes(transformedRecipes);
+      }
+    } catch (error) {
+      console.error('Failed to fetch recipes:', error);
+      // Fallback to mock data
+      setRecipes(mockRecipes);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get recommendations from API
+  const getRecommendations = async (query: string, image?: File): Promise<Recipe[]> => {
+    try {
+      const response = await apiClient.getRecommendations(query, image);
+      if (response.data?.recipes) {
+        return response.data.recipes.map((recipe: any) => ({
+          ...recipe,
+          nutritionalInfo: recipe.nutritionalInfo || {
+            protein: 15,
+            carbs: 30,
+            fat: 10,
+            fiber: 5
+          }
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to get recommendations:', error);
+    }
+    
+    // Fallback to shuffled mock recipes
+    return [...mockRecipes].sort(() => Math.random() - 0.5).slice(0, 10);
+  };
+
   // Filter recipes based on search filters
   useEffect(() => {
     setLoading(true);
@@ -63,7 +116,8 @@ export const RecipeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const query = searchFilters.query.toLowerCase();
       filtered = filtered.filter(recipe => 
         recipe.title.toLowerCase().includes(query) ||
-        recipe.ingredients.some(ing => ing.toLowerCase().includes(query))
+        recipe.ingredients.some(ing => ing.toLowerCase().includes(query)) ||
+        recipe.cuisine.toLowerCase().includes(query)
       );
     }
 
@@ -102,6 +156,11 @@ export const RecipeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setFilteredRecipes(filtered);
     setLoading(false);
   }, [recipes, searchFilters]);
+
+  // Initialize recipes on mount
+  useEffect(() => {
+    fetchRecipes();
+  }, []);
 
   const addToFavorites = (recipe: Recipe) => {
     if (!favorites.some(fav => fav.id === recipe.id)) {
@@ -207,7 +266,9 @@ export const RecipeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setCurrentMealPlan,
         addRecipeToMealPlan,
         removeRecipeFromMealPlan,
-        loading
+        loading,
+        fetchRecipes,
+        getRecommendations
       }}
     >
       {children}

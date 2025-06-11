@@ -1,5 +1,5 @@
-// API client for FastAPI backend
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+// API client for backend integration
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 interface ApiResponse<T> {
   data?: T;
@@ -37,7 +37,7 @@ class ApiClient {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || `HTTP ${response.status}`);
+        throw new Error(errorData.detail || errorData.error || `HTTP ${response.status}`);
       }
 
       const data = await response.json();
@@ -58,15 +58,53 @@ class ApiClient {
     localStorage.removeItem('access_token');
   }
 
+  // Health check
+  async healthCheck() {
+    return this.request<{ status: string; timestamp: string }>('/api/health');
+  }
+
   // Auth endpoints
   async getGitLabAuthUrl() {
-    return this.request<{ url: string }>('/auth/gitlab');
+    return this.request<{ url: string }>('/api/auth/gitlab/url');
   }
 
   async handleGitLabCallback(code: string) {
-    return this.request<{ access_token: string; token_type: string }>(
-      `/auth/callback?code=${code}`
-    );
+    return this.request<{ 
+      access_token: string; 
+      token_type: string;
+      user: {
+        id: string;
+        name: string;
+        username: string;
+        email: string;
+        avatar_url: string;
+      }
+    }>('/api/auth/callback', {
+      method: 'POST',
+      body: JSON.stringify({ code })
+    });
+  }
+
+  // Recipe endpoints
+  async getRecipes(params: {
+    q?: string;
+    cuisine?: string;
+    difficulty?: string;
+    mealType?: string;
+  } = {}) {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) searchParams.append(key, value);
+    });
+    
+    const queryString = searchParams.toString();
+    const endpoint = `/api/recipes${queryString ? `?${queryString}` : ''}`;
+    
+    return this.request<{ recipes: any[] }>(endpoint);
+  }
+
+  async getRecipeById(id: string) {
+    return this.request<{ recipe: any }>(`/api/recipes/${id}`);
   }
 
   // Recipe recommendation
@@ -93,7 +131,7 @@ class ApiClient {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || `HTTP ${response.status}`);
+        throw new Error(errorData.detail || errorData.error || `HTTP ${response.status}`);
       }
 
       const data = await response.json();

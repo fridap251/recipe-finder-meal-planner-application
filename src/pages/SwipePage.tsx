@@ -7,11 +7,12 @@ import { Recipe } from '../types';
 
 const SwipePage: React.FC = () => {
   const navigate = useNavigate();
-  const { recipes, addToFavorites } = useRecipes();
+  const { recipes, addToFavorites, getRecommendations } = useRecipes();
   const [swipeRecipes, setSwipeRecipes] = useState<Recipe[]>([]);
   const [likedRecipes, setLikedRecipes] = useState<Recipe[]>([]);
   const [superLikedRecipes, setSuperLikedRecipes] = useState<Recipe[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     maxCookTime: 60,
     cuisine: '',
@@ -20,26 +21,43 @@ const SwipePage: React.FC = () => {
   });
 
   useEffect(() => {
-    // Filter and shuffle recipes for swiping
-    let filtered = [...recipes];
+    const loadSwipeRecipes = async () => {
+      setLoading(true);
+      try {
+        // Get recommendations from API
+        const recommendations = await getRecommendations('discover new recipes');
+        
+        // Filter based on user preferences
+        let filtered = recommendations.length > 0 ? recommendations : [...recipes];
 
-    if (filters.maxCookTime < 60) {
-      filtered = filtered.filter(recipe => recipe.cookTime <= filters.maxCookTime);
-    }
-    if (filters.cuisine) {
-      filtered = filtered.filter(recipe => recipe.cuisine === filters.cuisine);
-    }
-    if (filters.difficulty) {
-      filtered = filtered.filter(recipe => recipe.difficulty === filters.difficulty);
-    }
-    if (filters.mealType) {
-      filtered = filtered.filter(recipe => recipe.mealType === filters.mealType);
-    }
+        if (filters.maxCookTime < 60) {
+          filtered = filtered.filter(recipe => recipe.cookTime <= filters.maxCookTime);
+        }
+        if (filters.cuisine) {
+          filtered = filtered.filter(recipe => recipe.cuisine === filters.cuisine);
+        }
+        if (filters.difficulty) {
+          filtered = filtered.filter(recipe => recipe.difficulty === filters.difficulty);
+        }
+        if (filters.mealType) {
+          filtered = filtered.filter(recipe => recipe.mealType === filters.mealType);
+        }
 
-    // Shuffle the filtered recipes
-    const shuffled = filtered.sort(() => Math.random() - 0.5);
-    setSwipeRecipes(shuffled.slice(0, 20)); // Limit to 20 recipes per session
-  }, [recipes, filters]);
+        // Shuffle the filtered recipes
+        const shuffled = filtered.sort(() => Math.random() - 0.5);
+        setSwipeRecipes(shuffled.slice(0, 20)); // Limit to 20 recipes per session
+      } catch (error) {
+        console.error('Failed to load swipe recipes:', error);
+        // Fallback to local recipes
+        const shuffled = [...recipes].sort(() => Math.random() - 0.5);
+        setSwipeRecipes(shuffled.slice(0, 20));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSwipeRecipes();
+  }, [recipes, filters, getRecommendations]);
 
   const handleLike = (recipe: Recipe) => {
     setLikedRecipes(prev => [...prev, recipe]);
@@ -73,6 +91,18 @@ const SwipePage: React.FC = () => {
   const cuisines = [...new Set(recipes.map(r => r.cuisine))];
   const difficulties = ['Easy', 'Medium', 'Hard'];
   const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Dessert'];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading Recipes</h2>
+          <p className="text-gray-600">Preparing your personalized recipe discovery...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">

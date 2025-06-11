@@ -6,7 +6,7 @@ import RecipeGrid from '../components/RecipeGrid';
 import ImageUpload from '../components/ImageUpload';
 
 const HomePage: React.FC = () => {
-  const { recipes, setSearchFilters, addToFavorites } = useRecipes();
+  const { recipes, setSearchFilters, addToFavorites, getRecommendations } = useRecipes();
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const navigate = useNavigate();
@@ -16,13 +16,15 @@ const HomePage: React.FC = () => {
     setAnalyzing(true);
 
     try {
-      // Simulate image analysis delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Get recommendations based on the uploaded image
+      await getRecommendations('food image analysis', file);
       
       // Navigate to swipe mode with image-based recommendations
       navigate('/swipe');
     } catch (error) {
       console.error('Error analyzing image:', error);
+      // Still navigate to swipe mode even if analysis fails
+      navigate('/swipe');
     } finally {
       setAnalyzing(false);
     }
