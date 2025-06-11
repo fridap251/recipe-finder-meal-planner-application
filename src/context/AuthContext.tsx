@@ -1,11 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import apiClient from '../lib/api';
 
 interface User {
-  id: number;
+  id: string;
   username: string;
-  name: string;
   email: string;
-  avatar_url: string;
+  preferences: {
+    calorie_target: number;
+    macro_split: {
+      protein: number;
+      carbs: number;
+      fat: number;
+    };
+  };
 }
 
 interface AuthContextType {
@@ -30,14 +37,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem('gitlab_access_token');
+        const token = localStorage.getItem('access_token');
         if (token) {
-          const userData = await fetchUserData(token);
-          setUser(userData);
+          apiClient.setToken(token);
+          // You might want to validate the token with a /me endpoint
+          // For now, we'll assume the token is valid if it exists
+          setUser({
+            id: 'current_user',
+            username: 'User',
+            email: 'user@example.com',
+            preferences: {
+              calorie_target: 2000,
+              macro_split: { protein: 40, carbs: 30, fat: 30 }
+            }
+          });
         }
       } catch (err) {
         console.error('Auth check failed:', err);
-        localStorage.removeItem('gitlab_access_token');
+        localStorage.removeItem('access_token');
+        apiClient.clearToken();
       } finally {
         setIsLoading(false);
       }
@@ -51,7 +69,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const handleOAuthCallback = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
-      const state = urlParams.get('state');
       const error = urlParams.get('error');
       const errorDescription = urlParams.get('error_description');
 
@@ -64,37 +81,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (code) {
         setIsLoading(true);
         try {
-          // Validate state parameter
-          const storedState = localStorage.getItem('oauth_state');
-          if (state !== storedState) {
-            throw new Error('Invalid state parameter. Possible CSRF attack.');
-          }
-
           console.log('Exchanging code for token...');
-          const response = await fetch('/.netlify/functions/gitlab-oauth', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ code, state }),
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error('Token exchange failed:', errorData);
-            throw new Error(errorData.error || 'Failed to authenticate');
+          const response = await apiClient.handleGitLabCallback(code);
+          
+          if (response.error) {
+            throw new Error(response.error);
           }
 
-          const tokenData = await response.json();
-          localStorage.setItem('gitlab_access_token', tokenData.access_token);
+          if (response.data) {
+            apiClient.setToken(response.data.access_token);
+            
+            // Set user data (you might want to fetch actual user data from /me endpoint)
+            setUser({
+              id: 'current_user',
+              username: 'User',
+              email: 'user@example.com',
+              preferences: {
+                calorie_target: 2000,
+                macro_split: { protein: 40, carbs: 30, fat: 30 }
+              }
+            });
 
-          const userData = await fetchUserData(tokenData.access_token);
-          setUser(userData);
-
-          // Clean up URL and state
-          window.history.replaceState({}, document.title, window.location.pathname);
-          localStorage.removeItem('oauth_state');
-          setError(null);
+            // Clean up URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            setError(null);
+          }
         } catch (err) {
           console.error('OAuth callback error:', err);
           setError(err instanceof Error ? err.message : 'Authentication failed');
@@ -107,44 +118,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     handleOAuthCallback();
   }, []);
 
-  const fetchUserData = async (token: string): Promise<User> => {
-    const response = await fetch('https://gitlab.com/api/v4/user', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch user data');
-    }
-
-    return response.json();
-  };
-
-  const generateRandomState = () => {
-    return Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
-  };
-
-  const login = () => {
+  const login = async () => {
     try {
       setError(null);
-      const clientId = '1d28de9d8a7bcbfb1c41cbc05b6133ac1a08f5891a7f4116a4df4f207a128312';
+      const response = await apiClient.getGitLabAuthUrl();
       
-      // Determine the correct redirect URI based on environment
-      const isProduction = window.location.hostname !== 'localhost';
-      const redirectUri = isProduction 
-        ? 'https://stellar-puffpuff-768d8a.netlify.app/auth/callback'
-        : `${window.location.origin}/auth/callback`;
-      
-      const state = generateRandomState();
-      const scopes = 'read_user';
-      
-      localStorage.setItem('oauth_state', state);
-      
-      const authUrl = `https://gitlab.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${state}`;
-      
-      console.log('Redirecting to GitLab OAuth:', authUrl);
-      window.location.href = authUrl;
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+      }
     } catch (err) {
       console.error('Login error:', err);
       setError('Failed to initiate login');
@@ -152,8 +137,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    localStorage.removeItem('gitlab_access_token');
-    localStorage.removeItem('oauth_state');
+    localStorage.removeItem('access_token');
+    apiClient.clearToken();
     setUser(null);
     setError(null);
   };
