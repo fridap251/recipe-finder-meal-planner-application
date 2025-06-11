@@ -36,12 +36,14 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // OAuth application credentials
-    const clientSecret = 'gloas-c56147f3adeba0d6c2a400f17f14c810352ceaa09b67103bd8c51b854dc5d704';
-    const clientId = '1d28de9d8a7bcbfb1c41cbc05b6133ac1a08f5891a7f4116a4df4f207a128312';
-    const redirectUri = 'https://stellar-puffpuff-768d8a.netlify.app/auth/callback';
+    // OAuth application credentials - using environment variables with fallbacks
+    const clientSecret = process.env.GITLAB_CLIENT_SECRET || 'gloas-c56147f3adeba0d6c2a400f17f14c810352ceaa09b67103bd8c51b854dc5d704';
+    const clientId = process.env.GITLAB_CLIENT_ID || '1d28de9d8a7bcbfb1c41cbc05b6133ac1a08f5891a7f4116a4df4f207a128312';
+    const redirectUri = process.env.GITLAB_REDIRECT_URI || 'https://stellar-puffpuff-768d8a.netlify.app/auth/callback';
 
     console.log('Attempting token exchange with GitLab...');
+    console.log('Client ID:', clientId);
+    console.log('Redirect URI:', redirectUri);
 
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://gitlab.com/oauth/token', {
