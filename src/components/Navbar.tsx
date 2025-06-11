@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Utensils, Calendar, Heart, Search, User } from 'lucide-react';
+import { Menu, X, Utensils, Calendar, Heart, Search, User, Zap } from 'lucide-react';
 import { cn } from '../lib/utils';
 import AuthButton from './AuthButton';
 
@@ -11,6 +11,7 @@ const Navbar: React.FC = () => {
   const navLinks = [
     { name: 'Home', path: '/', icon: <Utensils className="w-5 h-5" /> },
     { name: 'Recipes', path: '/recipes', icon: <Search className="w-5 h-5" /> },
+    { name: 'Swipe', path: '/swipe', icon: <Zap className="w-5 h-5" /> },
     { name: 'Meal Planner', path: '/meal-planner', icon: <Calendar className="w-5 h-5" /> },
     { name: 'Favorites', path: '/favorites', icon: <Heart className="w-5 h-5" /> },
     { name: 'Profile', path: '/profile', icon: <User className="w-5 h-5" /> },
@@ -37,7 +38,7 @@ const Navbar: React.FC = () => {
                 key={link.name}
                 to={link.path}
                 className={cn(
-                  "inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                  "inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors relative",
                   location.pathname === link.path
                     ? "text-primary-700 bg-primary-50"
                     : "text-gray-600 hover:text-primary-600 hover:bg-gray-50"
@@ -45,6 +46,11 @@ const Navbar: React.FC = () => {
               >
                 <span className="mr-2">{link.icon}</span>
                 {link.name}
+                {link.name === 'Swipe' && (
+                  <span className="absolute -top-1 -right-1 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">
+                    NEW
+                  </span>
+                )}
               </Link>
             ))}
             <div className="ml-4 pl-4 border-l border-gray-200">
@@ -76,7 +82,7 @@ const Navbar: React.FC = () => {
               key={link.name}
               to={link.path}
               className={cn(
-                "block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-200",
+                "block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-200 relative",
                 location.pathname === link.path
                   ? "border-primary-500 text-primary-700 bg-primary-50"
                   : "border-transparent text-gray-600 hover:text-primary-700 hover:bg-gray-50 hover:border-primary-300"
@@ -86,6 +92,11 @@ const Navbar: React.FC = () => {
               <div className="flex items-center">
                 <span className="mr-2">{link.icon}</span>
                 {link.name}
+                {link.name === 'Swipe' && (
+                  <span className="ml-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">
+                    NEW
+                  </span>
+                )}
               </div>
             </Link>
           ))}

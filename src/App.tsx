@@ -7,6 +7,7 @@ import RecipeDetailPage from './pages/RecipeDetailPage';
 import MealPlannerPage from './pages/MealPlannerPage';
 import FavoritesPage from './pages/FavoritesPage';
 import ProfilePage from './pages/ProfilePage';
+import SwipePage from './pages/SwipePage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import { RecipeProvider } from './context/RecipeContext';
 import { AuthProvider } from './context/AuthContext';
@@ -18,6 +19,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
+            <Route path="/swipe" element={<SwipePage />} />
             <Route path="/*" element={
               <Layout>
                 <Routes>
