@@ -26,7 +26,7 @@ interface AuthContextType {
   logout: () => void;
   signUp: (email: string, password: string) => Promise<{ error?: string }>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signInWithOAuth: (provider: 'github') => Promise<{ error?: string }>;
+  signInWithOAuth: (provider: 'github' | 'google' | 'discord') => Promise<{ error?: string }>;
   resetPassword: (email: string) => Promise<{ error?: string }>;
   error: string | null;
 }
@@ -43,7 +43,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Get the correct redirect URL based on current environment
   const getRedirectUrl = () => {
     if (typeof window !== 'undefined') {
-      return `${window.location.origin}/auth/callback`;
+      // Check if we're on Netlify or localhost
+      const origin = window.location.origin;
+      if (origin.includes('netlify.app') || origin.includes('localhost')) {
+        return `${origin}/auth/callback`;
+      }
     }
     return 'http://localhost:5173/auth/callback';
   };
@@ -53,6 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     id: supabaseUser.id,
     username: supabaseUser.user_metadata?.username || 
               supabaseUser.user_metadata?.user_name || 
+              supabaseUser.user_metadata?.preferred_username ||
               supabaseUser.email?.split('@')[0] || 'user',
     name: supabaseUser.user_metadata?.full_name || 
           supabaseUser.user_metadata?.name || 
@@ -158,7 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signInWithOAuth = async (provider: 'github') => {
+  const signInWithOAuth = async (provider: 'github' | 'google' | 'discord') => {
     try {
       setError(null);
       const { data, error } = await supabase.auth.signInWithOAuth({

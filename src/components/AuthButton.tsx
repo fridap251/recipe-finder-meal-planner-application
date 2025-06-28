@@ -44,6 +44,7 @@ const AuthButton: React.FC = () => {
       const { error } = await signInWithOAuth('github');
       if (error) {
         setAuthError(error);
+        setAuthLoading(false);
       }
       // Note: For OAuth, the modal will stay open until redirect happens
     } catch (err) {
