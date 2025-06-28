@@ -23,13 +23,11 @@ const AuthButton: React.FC = () => {
       
       if (error) {
         setAuthError(error);
+        // Don't close modal if there's an error
       } else {
         setShowAuthModal(false);
         setEmail('');
         setPassword('');
-        if (isSignUp) {
-          setAuthError('Check your email for a confirmation link!');
-        }
       }
     } catch (err) {
       setAuthError('Authentication failed');
@@ -47,9 +45,9 @@ const AuthButton: React.FC = () => {
       if (error) {
         setAuthError(error);
       }
+      // Note: For OAuth, the modal will stay open until redirect happens
     } catch (err) {
       setAuthError('GitHub authentication failed');
-    } finally {
       setAuthLoading(false);
     }
   };
@@ -114,7 +112,12 @@ const AuthButton: React.FC = () => {
                 {isSignUp ? 'Create Account' : 'Welcome Back'}
               </h2>
               <button
-                onClick={() => setShowAuthModal(false)}
+                onClick={() => {
+                  setShowAuthModal(false);
+                  setAuthError(null);
+                  setEmail('');
+                  setPassword('');
+                }}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 ✕

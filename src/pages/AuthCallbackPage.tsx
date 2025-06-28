@@ -1,18 +1,53 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 const AuthCallbackPage: React.FC = () => {
   const { isLoading, error, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [callbackError, setCallbackError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const handleAuthCallback = async () => {
+      try {
+        // Handle the auth callback
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Auth callback error:', error);
+          setCallbackError(error.message);
+          return;
+        }
+
+        // If we have a session, the auth context will handle the user state
+        if (data.session) {
+          console.log('Auth callback successful');
+          // Small delay to ensure auth context is updated
+          setTimeout(() => {
+            navigate('/', { replace: true });
+          }, 1000);
+        } else {
+          // No session, redirect to home
+          navigate('/', { replace: true });
+        }
+      } catch (err) {
+        console.error('Unexpected auth callback error:', err);
+        setCallbackError('An unexpected error occurred during authentication');
+      }
+    };
+
+    handleAuthCallback();
+  }, [navigate]);
+
+  // If authenticated, redirect immediately
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       navigate('/', { replace: true });
     }
   }, [isLoading, isAuthenticated, navigate]);
 
-  if (error) {
+  if (error || callbackError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50">
         <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
@@ -23,7 +58,7 @@ const AuthCallbackPage: React.FC = () => {
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Authentication Failed</h2>
-            <p className="text-gray-600 mb-8">{error}</p>
+            <p className="text-gray-600 mb-8">{error || callbackError}</p>
             <button
               onClick={() => navigate('/')}
               className="btn-primary w-full"

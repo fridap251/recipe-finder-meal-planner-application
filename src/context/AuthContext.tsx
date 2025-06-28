@@ -49,6 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     name: supabaseUser.user_metadata?.full_name || 
           supabaseUser.user_metadata?.name || 
           supabaseUser.user_metadata?.display_name ||
+          supabaseUser.email?.split('@')[0] ||
           'User',
     email: supabaseUser.email || '',
     avatar_url: supabaseUser.user_metadata?.avatar_url || 
@@ -113,6 +114,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         setError(error.message);
         return { error: error.message };
+      }
+
+      // Check if user needs to confirm email
+      if (data.user && !data.session) {
+        return { error: 'Please check your email for a confirmation link!' };
       }
 
       return { error: undefined };
