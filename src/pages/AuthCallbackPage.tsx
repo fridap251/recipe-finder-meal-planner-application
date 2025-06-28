@@ -44,7 +44,7 @@ const AuthCallbackPage: React.FC = () => {
             <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Completing Sign In</h2>
-          <p className="text-gray-600">Please wait while we authenticate your GitLab account...</p>
+          <p className="text-gray-600">Please wait while we authenticate your account...</p>
           <div className="mt-6 bg-primary-50 rounded-lg p-4">
             <div className="flex items-center justify-center space-x-2">
               <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce"></div>

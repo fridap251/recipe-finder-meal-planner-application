@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import apiClient from '../lib/api';
+import { supabase } from '../lib/supabase';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface User {
   id: string;
@@ -23,6 +24,10 @@ interface AuthContextType {
   isLoading: boolean;
   login: () => void;
   logout: () => void;
+  signUp: (email: string, password: string) => Promise<{ error?: string }>;
+  signIn: (email: string, password: string) => Promise<{ error?: string }>;
+  signInWithOAuth: (provider: 'google' | 'github' | 'discord') => Promise<{ error?: string }>;
+  resetPassword: (email: string) => Promise<{ error?: string }>;
   error: string | null;
 }
 
@@ -35,146 +40,164 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isAuthenticated = !!user;
 
-  // Check for existing authentication on app load
+  // Transform Supabase user to our User interface
+  const transformUser = (supabaseUser: SupabaseUser): User => ({
+    id: supabaseUser.id,
+    username: supabaseUser.user_metadata?.username || supabaseUser.email?.split('@')[0] || 'user',
+    name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || 'User',
+    email: supabaseUser.email || '',
+    avatar_url: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture,
+    preferences: {
+      calorie_target: 2000,
+      macro_split: { protein: 40, carbs: 30, fat: 30 }
+    }
+  });
+
   useEffect(() => {
-    const checkAuth = async () => {
+    // Get initial session
+    const getInitialSession = async () => {
       try {
-        const token = localStorage.getItem('access_token');
-        const savedUser = localStorage.getItem('user_data');
-        
-        if (token && savedUser) {
-          apiClient.setToken(token);
-          setUser(JSON.parse(savedUser));
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error getting session:', error);
+          setError(error.message);
+        } else if (session?.user) {
+          setUser(transformUser(session.user));
         }
       } catch (err) {
-        console.error('Auth check failed:', err);
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user_data');
-        apiClient.clearToken();
+        console.error('Session error:', err);
+        setError('Failed to get session');
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkAuth();
-  }, []);
+    getInitialSession();
 
-  // Handle OAuth callback
-  useEffect(() => {
-    const handleOAuthCallback = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
-      const mockAuth = urlParams.get('mock_auth');
-      const error = urlParams.get('error');
-      const errorDescription = urlParams.get('error_description');
-
-      if (error) {
-        setError(`OAuth Error: ${error}${errorDescription ? ` - ${errorDescription}` : ''}`);
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        if (session?.user) {
+          setUser(transformUser(session.user));
+        } else {
+          setUser(null);
+        }
+        
         setIsLoading(false);
-        return;
+        setError(null);
       }
+    );
 
-      // Handle mock authentication
-      if (mockAuth === 'true') {
-        setIsLoading(true);
-        try {
-          const response = await apiClient.handleGitLabCallback('mock-code');
-          
-          if (response.error) {
-            throw new Error(response.error);
-          }
-
-          if (response.data) {
-            apiClient.setToken(response.data.access_token);
-            
-            const userData: User = {
-              ...response.data.user,
-              preferences: {
-                calorie_target: 2000,
-                macro_split: { protein: 40, carbs: 30, fat: 30 }
-              }
-            };
-            
-            setUser(userData);
-            localStorage.setItem('user_data', JSON.stringify(userData));
-
-            // Clean up URL
-            window.history.replaceState({}, document.title, window.location.pathname);
-            setError(null);
-          }
-        } catch (err) {
-          console.error('Mock auth error:', err);
-          setError(err instanceof Error ? err.message : 'Authentication failed');
-        } finally {
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      if (code) {
-        setIsLoading(true);
-        try {
-          console.log('Exchanging code for token...');
-          const response = await apiClient.handleGitLabCallback(code);
-          
-          if (response.error) {
-            throw new Error(response.error);
-          }
-
-          if (response.data) {
-            apiClient.setToken(response.data.access_token);
-            
-            const userData: User = {
-              ...response.data.user,
-              preferences: {
-                calorie_target: 2000,
-                macro_split: { protein: 40, carbs: 30, fat: 30 }
-              }
-            };
-            
-            setUser(userData);
-            localStorage.setItem('user_data', JSON.stringify(userData));
-
-            // Clean up URL
-            window.history.replaceState({}, document.title, window.location.pathname);
-            setError(null);
-          }
-        } catch (err) {
-          console.error('OAuth callback error:', err);
-          setError(err instanceof Error ? err.message : 'Authentication failed');
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    handleOAuthCallback();
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async () => {
+  const signUp = async (email: string, password: string) => {
     try {
       setError(null);
-      const response = await apiClient.getGitLabAuthUrl();
-      
-      if (response.error) {
-        throw new Error(response.error);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) {
+        setError(error.message);
+        return { error: error.message };
       }
 
-      if (response.data?.url) {
-        window.location.href = response.data.url;
-      }
+      return { error: undefined };
     } catch (err) {
-      console.error('Login error:', err);
-      setError('Failed to initiate login');
+      const errorMessage = err instanceof Error ? err.message : 'Sign up failed';
+      setError(errorMessage);
+      return { error: errorMessage };
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user_data');
-    apiClient.clearToken();
-    setUser(null);
-    setError(null);
+  const signIn = async (email: string, password: string) => {
+    try {
+      setError(null);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        setError(error.message);
+        return { error: error.message };
+      }
+
+      return { error: undefined };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Sign in failed';
+      setError(errorMessage);
+      return { error: errorMessage };
+    }
+  };
+
+  const signInWithOAuth = async (provider: 'google' | 'github' | 'discord') => {
+    try {
+      setError(null);
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) {
+        setError(error.message);
+        return { error: error.message };
+      }
+
+      return { error: undefined };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'OAuth sign in failed';
+      setError(errorMessage);
+      return { error: errorMessage };
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      setError(null);
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`
+      });
+
+      if (error) {
+        setError(error.message);
+        return { error: error.message };
+      }
+
+      return { error: undefined };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Password reset failed';
+      setError(errorMessage);
+      return { error: errorMessage };
+    }
+  };
+
+  // Legacy login method for compatibility
+  const login = () => {
+    // This will be handled by the new auth components
+    setError('Please use the sign in form');
+  };
+
+  const logout = async () => {
+    try {
+      setError(null);
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        setError(error.message);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Sign out failed';
+      setError(errorMessage);
+    }
   };
 
   return (
@@ -185,6 +208,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         login,
         logout,
+        signUp,
+        signIn,
+        signInWithOAuth,
+        resetPassword,
         error,
       }}
     >
