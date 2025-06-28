@@ -40,7 +40,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, fallback }) =
           <div className="space-y-3">
             <button
               onClick={() => signInWithOAuth('github')}
-              className="w-full flex items-center justify-center px-4 py-2 bg-gray-900 text-white rounded-md shadow-sm text-sm font-medium hover:bg-gray-800 transition-colors"
+              className="w-full flex items-center justify-center px-4 py-3 bg-gray-900 text-white rounded-lg shadow-sm text-sm font-medium hover:bg-gray-800 transition-colors"
             >
               <Github className="w-5 h-5 mr-2" />
               Continue with GitHub
@@ -57,7 +57,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, fallback }) =
             
             <p className="text-sm text-gray-500 flex items-center justify-center">
               <Mail className="w-4 h-4 mr-1" />
-              Use the Sign In button above for email authentication
+              Use the Sign In button in the navigation for email authentication
             </p>
           </div>
         </div>

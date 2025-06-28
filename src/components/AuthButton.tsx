@@ -23,7 +23,6 @@ const AuthButton: React.FC = () => {
       
       if (error) {
         setAuthError(error);
-        // Don't close modal if there's an error
       } else {
         setShowAuthModal(false);
         setEmail('');
@@ -51,6 +50,14 @@ const AuthButton: React.FC = () => {
       setAuthError('GitHub authentication failed');
       setAuthLoading(false);
     }
+  };
+
+  const closeModal = () => {
+    setShowAuthModal(false);
+    setAuthError(null);
+    setEmail('');
+    setPassword('');
+    setIsSignUp(false);
   };
 
   if (isLoading) {
@@ -113,12 +120,7 @@ const AuthButton: React.FC = () => {
                 {isSignUp ? 'Create Account' : 'Welcome Back'}
               </h2>
               <button
-                onClick={() => {
-                  setShowAuthModal(false);
-                  setAuthError(null);
-                  setEmail('');
-                  setPassword('');
-                }}
+                onClick={closeModal}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 ✕
@@ -136,7 +138,7 @@ const AuthButton: React.FC = () => {
               <button
                 onClick={handleGitHubLogin}
                 disabled={authLoading}
-                className="w-full flex items-center justify-center px-4 py-2 bg-gray-900 text-white rounded-md shadow-sm text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center px-4 py-3 bg-gray-900 text-white rounded-lg shadow-sm text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Github className="w-5 h-5 mr-2" />
                 {authLoading ? 'Connecting...' : 'Continue with GitHub'}
@@ -148,14 +150,14 @@ const AuthButton: React.FC = () => {
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or sign in with email</span>
+                <span className="px-2 bg-white text-gray-500">Or continue with email</span>
               </div>
             </div>
 
             <form onSubmit={handleEmailAuth} className="space-y-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
+                  Email Address
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />

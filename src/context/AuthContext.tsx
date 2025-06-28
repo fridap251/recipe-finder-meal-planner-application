@@ -26,7 +26,7 @@ interface AuthContextType {
   logout: () => void;
   signUp: (email: string, password: string) => Promise<{ error?: string }>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signInWithOAuth: (provider: 'github' | 'google' | 'discord') => Promise<{ error?: string }>;
+  signInWithOAuth: (provider: 'github') => Promise<{ error?: string }>;
   resetPassword: (email: string) => Promise<{ error?: string }>;
   error: string | null;
 }
@@ -43,11 +43,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Get the correct redirect URL based on current environment
   const getRedirectUrl = () => {
     if (typeof window !== 'undefined') {
-      // Check if we're on Netlify or localhost
       const origin = window.location.origin;
-      if (origin.includes('netlify.app') || origin.includes('localhost')) {
-        return `${origin}/auth/callback`;
-      }
+      // Always use the current origin for auth callback
+      return `${origin}/auth/callback`;
     }
     return 'http://localhost:5173/auth/callback';
   };
@@ -163,7 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signInWithOAuth = async (provider: 'github' | 'google' | 'discord') => {
+  const signInWithOAuth = async (provider: 'github') => {
     try {
       setError(null);
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -180,7 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { error: undefined };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'OAuth sign in failed';
+      const errorMessage = err instanceof Error ? err.message : 'GitHub sign in failed';
       setError(errorMessage);
       return { error: errorMessage };
     }
