@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center">
               <Utensils className="h-8 w-8 text-primary-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">RecipeFinder</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">Finge</span>
             </div>
             <p className="mt-2 text-sm text-gray-600">
               Discover delicious recipes and plan your meals with ease.
@@ -67,7 +67,7 @@ const Footer: React.FC = () => {
         </div>
         <div className="mt-8 border-t border-gray-200 pt-6">
           <p className="text-sm text-gray-500 text-center">
-            &copy; {new Date().getFullYear()} RecipeFinder. All rights reserved.
+            &copy; {new Date().getFullYear()} Finge. All rights reserved.
           </p>
         </div>
       </div>

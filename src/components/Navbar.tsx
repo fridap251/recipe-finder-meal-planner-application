@@ -28,7 +28,7 @@ const Navbar: React.FC = () => {
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
               <Utensils className="h-8 w-8 text-primary-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">RecipeFinder</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">Finge</span>
             </Link>
           </div>
           
