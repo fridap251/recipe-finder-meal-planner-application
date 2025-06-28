@@ -26,7 +26,7 @@ interface AuthContextType {
   logout: () => void;
   signUp: (email: string, password: string) => Promise<{ error?: string }>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signInWithOAuth: (provider: 'google' | 'github' | 'discord') => Promise<{ error?: string }>;
+  signInWithOAuth: (provider: 'github') => Promise<{ error?: string }>;
   resetPassword: (email: string) => Promise<{ error?: string }>;
   error: string | null;
 }
@@ -43,10 +43,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Transform Supabase user to our User interface
   const transformUser = (supabaseUser: SupabaseUser): User => ({
     id: supabaseUser.id,
-    username: supabaseUser.user_metadata?.username || supabaseUser.email?.split('@')[0] || 'user',
-    name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || 'User',
+    username: supabaseUser.user_metadata?.username || 
+              supabaseUser.user_metadata?.user_name || 
+              supabaseUser.email?.split('@')[0] || 'user',
+    name: supabaseUser.user_metadata?.full_name || 
+          supabaseUser.user_metadata?.name || 
+          supabaseUser.user_metadata?.display_name ||
+          'User',
     email: supabaseUser.email || '',
-    avatar_url: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture,
+    avatar_url: supabaseUser.user_metadata?.avatar_url || 
+                supabaseUser.user_metadata?.picture,
     preferences: {
       calorie_target: 2000,
       macro_split: { protein: 40, carbs: 30, fat: 30 }
@@ -138,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signInWithOAuth = async (provider: 'google' | 'github' | 'discord') => {
+  const signInWithOAuth = async (provider: 'github') => {
     try {
       setError(null);
       const { data, error } = await supabase.auth.signInWithOAuth({
